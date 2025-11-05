@@ -1,0 +1,12 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="hero">
+  <h2>Empowering Vision through AI</h2>
+  <p>An AI-powered assistive mobility tool that transforms the world into words — making navigation safer, smarter, and more independent for visually impaired individuals.</p>
+  {% if not logged_in %}
+    <a href="{{ url_for('login_page') }}" class="btn">Get Started</a>
+  {% else %}
+    <a href="{{ url_for('upload') }}" class="btn">Go to Upload</a>
+  {% endif %}
+</section>
+{% endblock %}

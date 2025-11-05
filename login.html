@@ -1,0 +1,15 @@
+{% extends "layout.html" %}
+{% block content %}
+<section>
+  <div class="card">
+    <h2>Login</h2>
+    {% if error %}<p style="color:#ff6b6b;">{{ error }}</p>{% endif %}
+    <form method="POST" action="/login">
+      <input type="text" name="username" placeholder="Username" required>
+      <input type="password" name="password" placeholder="Password" required>
+      <button type="submit" class="btn">Login</button>
+    </form>
+    <p style="margin-top:1rem;">Don’t have an account? <a href="{{ url_for('register') }}" style="color:#00f5d4;">Register</a></p>
+  </div>
+</section>
+{% endblock %}

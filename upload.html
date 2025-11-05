@@ -1,0 +1,166 @@
+{% extends "layout.html" %}
+{% block content %}
+<section class="upload-section">
+  <main class="upload-grid">
+    
+    <!-- Panel 1: Upload/Webcam -->
+    <div class="card">
+      <h2>📂 Upload / Webcam</h2>
+      <input type="file" id="videoUpload" accept="video/*">
+      <button class="btn" onclick="uploadVideo()">⬆ Upload & Process</button>
+      <button class="btn" onclick="startWebcam()">📷 Use Webcam (15s)</button>
+    </div>
+
+    <!-- Panel 2: Original Video -->
+    <div class="card">
+      <h2>🎞 Original Video</h2>
+      <video id="originalVideo" controls></video>
+    </div>
+
+    <!-- Panel 3: Processed Output -->
+    <div class="card output-card">
+      <h2>🤖 Processed Output</h2>
+      <div id="progressBox" style="display:none;">
+        <p id="progressText">Processing...</p>
+        <progress id="progressBar" value="0" max="100" style="width:100%;"></progress>
+      </div>
+      <video id="processedVideo" controls></video>
+      <h3>🔊 Narration</h3>
+      <audio id="narrationAudio" controls></audio>
+    </div>
+
+  </main>
+</section>
+
+<style>
+  .upload-section {
+    height: calc(100vh - 80px); /* full screen minus header */
+    display: flex;
+    align-items: stretch;
+    justify-content: center;
+  }
+
+  .upload-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr; /* three equal panels */
+    gap: 1rem;
+    width: 100%;
+    max-width: 1400px;
+    height: 100%;
+  }
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    padding: 1.5rem;
+    height: 100%;
+    border-radius: 12px;
+    background: rgba(40, 35, 80, 0.9);
+    color: #fff;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+  }
+
+  .card h2 {
+    margin-bottom: 1rem;
+  }
+
+  .output-card {
+    justify-content: flex-start;
+    align-items: center;
+    text-align: center;
+  }
+
+  .card video,
+  .card audio {
+    width: 100%;
+    max-width: 95%;
+    margin-top: 0.5rem;
+    border-radius: 10px;
+    background: #000;
+  }
+
+  #progressBox {
+    width: 95%;
+    margin: 0 auto 1rem auto;
+  }
+
+  .btn {
+    margin-top: 0.5rem;
+    padding: 0.7rem 1.2rem;
+    background: #00e6e6;
+    color: #111;
+    font-weight: bold;
+    text-align: center;
+    text-decoration: none;
+    border-radius: 25px;
+    cursor: pointer;
+    width: 100%;
+  }
+
+  .btn:hover {
+    background: #00cccc;
+  }
+</style>
+
+<script>
+  async function uploadVideo() {
+    const fileInput = document.getElementById('videoUpload');
+    if (!fileInput.files.length) {
+      alert("Please select a video first.");
+      return;
+    }
+    const formData = new FormData();
+    formData.append("video", fileInput.files[0]);
+    formData.append("enable_audio", "1");
+
+    document.getElementById("progressBox").style.display = "block";
+    document.getElementById("progressBar").value = 20;
+    document.getElementById("progressText").innerText = "Uploading...";
+
+    try {
+      const response = await fetch("/process", { method: "POST", body: formData });
+      if (!response.ok) throw new Error("Processing failed.");
+      const data = await response.json();
+
+      document.getElementById("progressBar").value = 100;
+      document.getElementById("progressText").innerText = "Done ✅";
+
+      // Original video (local preview)
+      document.getElementById("originalVideo").src = URL.createObjectURL(fileInput.files[0]);
+
+      // Processed + narration
+      document.getElementById("processedVideo").src = data.output_url;
+      document.getElementById("narrationAudio").src = data.audio_url;
+    } catch (err) {
+      document.getElementById("progressText").innerText = "Error ❌ " + err.message;
+    }
+  }
+
+  async function startWebcam() {
+    document.getElementById("progressBox").style.display = "block";
+    document.getElementById("progressBar").value = 20;
+    document.getElementById("progressText").innerText = "Recording webcam (15s)...";
+
+    try {
+      const response = await fetch("/start_webcam");
+      if (!response.ok) throw new Error("Webcam processing failed.");
+      const data = await response.json();
+
+      document.getElementById("progressBar").value = 100;
+      document.getElementById("progressText").innerText = "Done ✅";
+
+      // Show raw webcam recording
+      document.getElementById("originalVideo").src = data.raw_url;
+
+      // Show processed output
+      document.getElementById("processedVideo").src = data.output_url;
+
+      // Show narration
+      document.getElementById("narrationAudio").src = data.audio_url;
+    } catch (err) {
+      document.getElementById("progressText").innerText = "Error ❌ " + err.message;
+    }
+  }
+</script>
+{% endblock %}

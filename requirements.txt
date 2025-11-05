@@ -1,0 +1,9 @@
+flask
+ultralytics
+transformers
+gTTS
+moviepy
+opencv-python
+torch
+numpy
+imageio[ffmpeg]
